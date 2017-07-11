@@ -13,7 +13,7 @@ class User{
     
     
     //METHODS
-    public function __construct($username, $pass, $email){
+    public function __construct($username="", $pass="", $email=""){
         
         $this->id = -1;
         $this->setEmail($email);
@@ -33,55 +33,119 @@ class User{
                 
                 return true;
             }
+        }else{
+            $stmt = $conn->prepare('UPDATE user SET username=:username, email=:email, hashed_password=:pass WHERE id=:id');
+            $result = $stmt->execute(
+                    [
+                        'id'=>$this->id,
+                        'username' => $this->username,
+                        'email' => $this->email,
+                        'pass'=> $this->pass
+                    ]
+                    );
+            if($result === true){
+                return true;
+            }
         }
         return false;
     }
     
+    static public function loadUserById(PDO $conn, $id)
+    {
+        $stmt = $conn->prepare('SELECT * FROM user WHERE id=:id');
+        $result = $stmt->execute(['id' => $id]);
+        
+        if ($result === true && $stmt->rowCount() > 0){
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            $loadedUser = new User();
+            $loadedUser->id = $row['id'];
+            $loadedUser->username = $row['username'];
+            $loadedUser->pass = $row['hashed_password'];
+            $loadedUser->email = $row['email'];
+            
+            return $loadedUser;
+        }
+        return null;
+    }
+    
+    static public function loadAllUsers(PDO $conn)
+    {
+        $sql = 'SELECT * FROM user';
+        $ret = [];
+        
+        $result = $conn->query($sql);
+        if($result !== false && $result->rowCount() != 0){
+            foreach($result as $row){
+                $loadedUser = new User();
+                $loadedUser->id = $row['id'];
+                $loadedUser->username = $row['username'];
+                $loadedUser->pass = $row['hashed_password'];
+                $loadedUser->email = $row['email'];
+                
+                $ret[] = $loadedUser;
+            }
+            
+        }
+        return $ret;
+    }
+    
+    public function delete(PDO $conn)
+    {
+        if($this->id != -1){
+            $stmt = $conn->prepare('DELETE FROM user WHERE id=:id');
+            $result = $stmt->execute(['id'=> $this->id]);
+            
+            if($result === true){
+                $this->id = -1;
+                
+                return true;
+            }
+            return false;
+        }
+        return true;
+    }
+
+
     //GETTERS
     
-    function getId() {
+    public function getId() {
         return $this->id;
     }
 
-    function getEmail() {
+    public function getEmail() {
         return $this->email;
     }
 
-    function getPass() {
+    public function getPass() {
         return $this->pass;
+    }
+    
+    public function getUsername(){
+        return $this->username;
     }
 
     //SETTERS
     
-    function setId($id) {
+    public function setId($id) {
         $this->id = $id;
     }
 
-    function setEmail($email) {
+    public function setEmail($email) {
         $this->email = $email;
     }
 
-    function setPass($newPass) {
+    public function setPass($newPass) {
         
         $hashedPass = password_hash($newPass, PASSWORD_BCRYPT);
         $this->pass = $hashedPass;
     }
     
-    function setUsername($username){
+    public function setUsername($username){
         $this->username = $username;
     }
 
 
 }
 
-var_dump($user1 = new User("Bobik", "haslo123", "costam@cos.pl"));
-var_dump($user1->saveToDB($conn));
 
-var_dump($user2 = new User("razdwa", "haslohaslo", "email@email.pl"));
-var_dump($user2->saveToDB($conn));
-
-var_dump($user3 = new User("razdwatrzy", "haslohaslo2", "email2@email.pl"));
-var_dump($user3->saveToDB($conn));
-
-var_dump($user4 = new User("razdwatrzycztery", "haslohaslo21", "email23@email.pl"));
-var_dump($user4->saveToDB($conn));
