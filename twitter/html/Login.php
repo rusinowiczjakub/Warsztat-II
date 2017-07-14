@@ -1,4 +1,18 @@
+
 <?php
+session_start();
+
+require "../Class/User.php";
+//require "../config.php";
+
+$conn = new PDO('mysql:host='.DB_HOST.';dbname='. DB_DB, DB_USER, DB_PASS);
+
+
+if(!isset($_SESSION['id'])){
+    $_SESSION['id'] = -1;
+}
+
+
 ?>
 
 <!DOCTYPE html>
@@ -65,8 +79,8 @@
         <li><a href="../index.php">Home</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-          <li class="active"><a href=""><span class="glyphicon glyphicon-log-in"></span> Register</a></li>
-        <li><a href="Login.php"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+          <li><a href="Registration.php"><span class="glyphicon glyphicon-log-in"></span> Register</a></li>
+        <li class="active"><a href=""><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
       </ul>
     </div>
   </div>
@@ -76,68 +90,45 @@
   <div class="row content">
     <div class="col-sm-2 sidenav">
     </div>
-    <div class="col-sm-8 text-left"> 
+    <div class="col-sm-8 text-left">
+        
         <form method="POST" action="" >
             <div class="col-sm-8 col-md-9 col-md-offset-4" style="min-width: 270px;">
                 <label for="username">Username</label>
                 <input name="username" class="form-control" id="inputdefault" type="text" style="width:30%">
             </div>
             <div class="col-sm-8 col-md-9 col-md-offset-4" style="min-width: 270px;">
-                <label for="email">E-mail</label>
-                <input name="email" class="form-control" id="inputdefault" type="email" style="width:30%">
-            </div>
-            <div class="col-sm-8 col-md-9 col-md-offset-4" style="min-width: 270px;">
                 <label for="password">Password</label>
-                <input name="password" class="form-control" id="inputdefault" type="password" style="width:30%">
-            </div>
-            <div class="col-sm-8 col-md-9 col-md-offset-4" style="min-width: 270px;">
-                <label for="password_valid">Confirm password</label>
-                <input name="password_valid" class="form-control" id="inputdefault" type="password" style="width:30%"><br>
+                <input name="password" class="form-control" id="inputdefault" type="password" style="width:30%"><br>
             </div>
             <div class="col-md-11 text-center">
-                <input type="submit" class="col-md-2 col-md-offset-5 btn btn-info" value="SIGN-UP"></input>
+                <input type="submit" class="col-md-2 col-md-offset-5 btn btn-info" value="SIGN-IN"></input>
             </div>
         </form>
         <div class="col-md-11 text-center">
-        <?php
-        
-        require '../Class/User.php';
-//        require '../config.php';
-        
-        
-        if($_SERVER['REQUEST_METHOD'] === "POST")
-        {
-        if(isset($_POST['username']) && isset($_POST['email']) && isset($_POST['password'])){
-
-
-            $username = $_POST['username'];
-            $password = $_POST['password'];
-            $email = $_POST['email'];
-
-            if($_POST['password'] === $_POST['password_valid'] && filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)){
-
-
-                try{
-                    $user = new User();
-                    $user->setUsername($username);
-                    $user->setEmail($email);
-                    $user->setPass($password);
-                    $user->saveToDB($conn);
-
-                } catch (Exception $ex) {
-                    echo "Registration failed" . $ex->getMessage();
+            
+            <?php
+ 
+        if($_SERVER['REQUEST_METHOD'] === 'POST'){
+            
+            if(isset($_POST['username']) && isset($_POST['password'])){
+                
+                $loggedIn = User::loadUserByUsername($conn, $_POST['username']);
+                
+                
+                
+                if($loggedIn !== null && $loggedIn->passVerify($_POST['password']) === true){
+                    $_SESSION['id'] = $loggedIn->getId();
+                    header("Location: ../main_page.php");
+                   
+                }else{
+                    echo "Invalid Username or Password";
+                    return false;
                 }
-                }elseif($_POST['password'] != $_POST['password_valid'] && !filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)){
-                    echo "Password confirmation is invalid" . "<br>" . "Email is not valid";
-                }elseif($_POST['password'] != $_POST['password_valid']){
-                    echo "Password confirmation is invalid ";
-                }elseif(!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)){
-                    echo "Email is not valid ";
-                }   
+               
             }
         }
-                 
-            
+        
         ?>
         </div>
     </div>
@@ -153,3 +144,5 @@
 
 </body>
 </html>
+
+

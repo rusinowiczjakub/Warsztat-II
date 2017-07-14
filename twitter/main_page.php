@@ -1,7 +1,7 @@
 <?php
+session_start();
 
 ?>
-
 
 
 <!DOCTYPE html>
@@ -65,11 +65,11 @@
     </div>
     <div class="collapse navbar-collapse" id="myNavbar">
       <ul class="nav navbar-nav">
-        <li><a href="">Home</a></li>
+        <li><a href="main_page.php">Home</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-          <li><a href="html/Registration.php"><span class="glyphicon glyphicon-log-in"></span> Register</a></li>
-        <li><a href="html/Login.php"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+          <li><a href="index.php"><span class="glyphicon glyphicon-log-in"></span> Log Out</a></li>
+        <!--<li><a href=""><span class="glyphicon glyphicon-log-in"></span> Login</a></li>-->
       </ul>
     </div>
   </div>
@@ -97,7 +97,5 @@
 
 </body>
 </html>
-
-
 
 

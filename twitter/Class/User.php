@@ -22,6 +22,14 @@ class User{
            
     }
     
+    public function passVerify($password){
+        if(password_verify($password, $this->pass) === true){
+            return true;
+        }else{
+            return false;
+        }
+    }
+    
     public function saveToDB(PDO $conn)
     {
         if($this->id == -1){
@@ -54,6 +62,25 @@ class User{
     {
         $stmt = $conn->prepare('SELECT * FROM user WHERE id=:id');
         $result = $stmt->execute(['id' => $id]);
+        
+        if ($result === true && $stmt->rowCount() > 0){
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            $loadedUser = new User();
+            $loadedUser->id = $row['id'];
+            $loadedUser->username = $row['username'];
+            $loadedUser->pass = $row['hashed_password'];
+            $loadedUser->email = $row['email'];
+            
+            return $loadedUser;
+        }
+        return null;
+    }
+    
+    static public function loadUserByUsername(PDO $conn, $username)
+    {
+        $stmt = $conn->prepare('SELECT * FROM user WHERE username=:username');
+        $result = $stmt->execute(['username'=>$username]);
         
         if ($result === true && $stmt->rowCount() > 0){
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
