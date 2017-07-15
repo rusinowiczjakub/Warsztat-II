@@ -151,9 +151,9 @@ class Post{
 }
 
 
-$testPost = new Post();
-$testPost->setContent("zapisz sie kurna");
-$testPost->setCreationDate();
-$testPost->setUserId(1);
+$newPost = new Post();
+$newPost->setContent("działaj w końcu...");
+$newPost->setCreationDate();
+$newPost->setUserId(1);
 
-var_dump($testPost->saveToDB($conn));
+var_dump($newPost->saveToDB($conn));
