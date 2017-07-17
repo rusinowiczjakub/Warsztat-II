@@ -15,10 +15,10 @@ class Post{
     //methods
     
     public function __construct() {
-        $this->id = NULL;
-        $this->setUserId(null);
-        $this->setContent('');
-        $this->setCreationDate(null);
+        $this->id = -1;
+        $this->userId = 0;
+        $this->content = "";
+        $this->creationDate = "";
     }
     
     static public function loadPostById(PDO $conn, $id)
@@ -66,43 +66,36 @@ class Post{
     
     public function saveToDB(PDO $conn){
     
-        if($this->id !== null){
-            $sql = 'UPDATE post SET content=:content, user_id=:user_id, creation_date=:creation_date WHERE id=:id';
-            
+         if($this->id == -1){
+            $sql = 'INSERT INTO post(content, creation_date, user_id) VALUES (:content, :creation_date, :user_id)';
             $stmt = $conn->prepare($sql);
-            
             $result = $stmt->execute(
-                    [
-                        'id' => $this->getId(),
-                        'user_id' => $this->getUserId(),
-                        'content'=> $this->getContent(),
-                        'creation_date' => $this->getCreationDate()
-                        
+                    ['content' => $this->getContent(), 
+                     'creation_date' => $this->getCreationDate(), 
+                     'user_id' => $this->getUserId()
                     ]);
-            if($result == true){
+            if($result === true){
+                $this->id = $conn->lastInsertId();
                 return true;
             }
-                                
-            }else{
-                $sql = 'INSERT INTO post(user_id, content, creation_date) VALUES (:user_id, :content, :creation_date)';
-                $stmt = $conn->prepare($sql);
-                $result = $stmt->execute(
-                        [
-                            'user_id' => $this->getUserId(),
-                            'content' => $this->getContent(),
-                            'creation_date' => $this->getCreationDate()
-                            
-                        ]);
+        }else{
+            $sql = 'UPDATE post SET user_id=:user_id, content=:content,creation_date=:creation_date WHERE id=:id';
+            $stmt = $conn->prepare($sql);
+            $result = $stmt->execute
+                    ([
+                        'content' => $this->getContent(),
+                        'creation_date' => $this->getCreationDate(),
+                        'id' => $this->getId(),
+                        'user_id' => $this->getUserId()
+                    ]);
+            if($result === true){
+                return true;
                 
-                if($result == true){
-                    $this->id = $conn->lastInsertId();
-                    return true;
-                }
             }
-            return false;
         }
-    
-    
+        echo "raz";
+        return false;
+    }
    
     //getters
     
@@ -157,3 +150,4 @@ $newPost->setCreationDate();
 $newPost->setUserId(1);
 
 var_dump($newPost->saveToDB($conn));
+var_dump($newPost);
