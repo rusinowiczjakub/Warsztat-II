@@ -64,36 +64,68 @@ class Post{
         return $ret;
     }
     
-    public function saveToDB(PDO $conn){
+    static public function loadAllPostsByUserId(PDO $conn, $id){
+        $sql = "SELECT * FROM post WHERE user_id=:$id";
+        $ret = [];
+        $result = $conn->query($sql);
+        
+        if($result !== false && $result->rowCount() > 0){
+            foreach($result as $row){
+                $loadedPost = new Post();
+                $loadedPost->id = $row['id'];
+                $loadedPost->content = $row['content'];
+                $loadedPost->creationDate = $row['creation_date'];
+                $loadedPost->userId = $row['user_id'];
+                $ret[] = $loadedPost;
+                
+            }
+        }
+        return $ret;
+    }
     
-         if($this->id == -1){
+    static public function loadAllPostsByDate(PDO $conn){
+        $sql = "SELECT * FROM post ORDER BY creation_date DESC";
+        $ret = [];
+        $result = $conn->query($sql);
+        
+        if($result !== false && $result->rowCount() > 0){
+            foreach($result as $row){
+                $loadedPost = new Post();
+                $loadedPost->id = $row['id'];
+                $loadedPost->content = $row['content'];
+                $loadedPost->creationDate = $row['creation_date'];
+                $loadedPost->userId = $row['user_id'];
+                $ret[] = $loadedPost;
+                
+            }
+        }
+        return $ret;
+    }
+    
+    public function saveToDB(PDO $conn){
+        if($this->id == -1){
             $sql = 'INSERT INTO post(content, creation_date, user_id) VALUES (:content, :creation_date, :user_id)';
             $stmt = $conn->prepare($sql);
             $result = $stmt->execute(
-                    ['content' => $this->getContent(), 
-                     'creation_date' => $this->getCreationDate(), 
-                     'user_id' => $this->getUserId()
-                    ]);
-            if($result === true){
+                ['content' => $this->content, 
+                'creation_date' => $this->creationDate, 
+                'user_id' => $this->userId
+                ]);
+            if($result !== false){
                 $this->id = $conn->lastInsertId();
                 return true;
             }
         }else{
-            $sql = 'UPDATE post SET user_id=:user_id, content=:content,creation_date=:creation_date WHERE id=:id';
+            $sql = 'UPDATE post SET content=:content,creation_date=:creation_date WHERE id=:id';
             $stmt = $conn->prepare($sql);
             $result = $stmt->execute
                     ([
-                        'content' => $this->getContent(),
-                        'creation_date' => $this->getCreationDate(),
-                        'id' => $this->getId(),
-                        'user_id' => $this->getUserId()
+                        'content' => $this->content,
+                        'creation_date' => $this->creationDate,
+                        'id' => $this->getId() 
                     ]);
-            if($result === true){
-                return true;
-                
-            }
+            if($result === true){return true;}
         }
-        echo "raz";
         return false;
     }
    
@@ -134,7 +166,7 @@ class Post{
     }
 
     public function setCreationDate() {
-        $format = "d M Y H:i:s";
+        $format = "d-m-y G:i:s";
         $this->creationDate = date($format, time());
         return $this;
     }
@@ -145,9 +177,11 @@ class Post{
 
 
 $newPost = new Post();
+$newPost->setUserId(10);
 $newPost->setContent("działaj w końcu...");
 $newPost->setCreationDate();
-$newPost->setUserId(1);
 
+
+$newPost->saveToDB($conn);
 var_dump($newPost->saveToDB($conn));
 var_dump($newPost);
